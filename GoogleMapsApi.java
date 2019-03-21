@@ -1,14 +1,9 @@
-package com.findsolucoes.backpackpro.googlemaps;
+package findsolucoes.com.appcidade.Utils.googlemapsapi;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
-import com.findsolucoes.backpackpro.googlemaps.DrawLineMaps.DrawMarkerListener;
-import com.findsolucoes.backpackpro.googlemaps.EstimatedTime.CalculateEstimatedTimeListener;
-import com.findsolucoes.backpackpro.googlemaps.EstimatedTime.EstimatedtimeResponse;
-import com.findsolucoes.backpackpro.googlemaps.EstimatedTime.TravelMode;
-import com.findsolucoes.backpackpro.googlemaps.GoogleMapsUtils.Utils;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -26,6 +21,13 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import findsolucoes.com.appcidade.Utils.googlemapsapi.AddMarkerClickListener.IAddMarkerClickListener;
+import findsolucoes.com.appcidade.Utils.googlemapsapi.DrawLineMaps.DrawMarkerListener;
+import findsolucoes.com.appcidade.Utils.googlemapsapi.EstimatedTime.CalculateEstimatedTimeListener;
+import findsolucoes.com.appcidade.Utils.googlemapsapi.EstimatedTime.EstimatedtimeResponse;
+import findsolucoes.com.appcidade.Utils.googlemapsapi.EstimatedTime.TravelMode;
+import findsolucoes.com.appcidade.Utils.googlemapsapi.GoogleMapsUtils.Utils;
+
 /**
  * João Victor
  */
@@ -33,15 +35,14 @@ public class GoogleMapsApi {
 
     //draw WayPoints mode
     public static int DRAW_MARKER_WITH_WAY_POINT = 1;
-
-
     public static int DRAW_MARKER_WITHOUT_WAY_POINT = 0;
 
 
 
-    private static int drawMakerWithWayPointMode;
+    private static int drawMakerWithWayPointMode = DRAW_MARKER_WITHOUT_WAY_POINT;
     private static boolean zoomMapAfterLoadMap = false;
     private static LatLng zoomPosition;
+    private static ArrayList<LatLng> customWayPoints = new ArrayList<>();
 
     private static String defaultTitleWayPointsMarkers = "Parada";
 
@@ -73,6 +74,8 @@ public class GoogleMapsApi {
         this.apiKey = apiKey;
         this.googleMap = googleMap;
     }
+
+
     /**
      * Set Travel mode
      * @param travelMode
@@ -82,8 +85,6 @@ public class GoogleMapsApi {
         this.travelMode = travelMode;
         return this;
     }
-
-
     /**
      * Calcule estimated time from origin point to end point
      * @param points
@@ -134,8 +135,6 @@ public class GoogleMapsApi {
                     }).request();
         }
     }
-
-
     /**
      * SET ZOOM MODE
      * @param position
@@ -149,36 +148,37 @@ public class GoogleMapsApi {
 
     /**
      * set Draw Marker with way point
-     * @param wayPointDraw
      * @return
      */
-    public GoogleMapsApi setDrawMarkerWithWayPoint(int wayPointDraw){
-        if(wayPointDraw == DRAW_MARKER_WITH_WAY_POINT)drawMakerWithWayPointMode = DRAW_MARKER_WITH_WAY_POINT;
-        else drawMakerWithWayPointMode = DRAW_MARKER_WITHOUT_WAY_POINT;
+    public GoogleMapsApi setDrawMarkerWithWayPoint(){
+        drawMakerWithWayPointMode = DRAW_MARKER_WITH_WAY_POINT;
         return this;
     }
-
     /**
      * set draw marker with way point and default title
-     * @param wayPointDraw
      * @param defaultTitle
      * @return
      */
-    public GoogleMapsApi setDrawMarkerWithWayPoint(int wayPointDraw, String defaultTitle){
-        if(wayPointDraw == DRAW_MARKER_WITH_WAY_POINT){
-            drawMakerWithWayPointMode = DRAW_MARKER_WITH_WAY_POINT;
-            defaultTitleWayPointsMarkers = defaultTitle;
-        }
-        else drawMakerWithWayPointMode = DRAW_MARKER_WITHOUT_WAY_POINT;
+    public GoogleMapsApi setDrawMarkerWithWayPoint(String defaultTitle){
+        drawMakerWithWayPointMode = DRAW_MARKER_WITH_WAY_POINT;
+        defaultTitleWayPointsMarkers = defaultTitle;
         return this;
     }
-
+    /**
+     * Set custom waypoints in rout
+     * @param latLngs
+     * @return
+     */
+    public GoogleMapsApi setCustomWayPoints(ArrayList<LatLng> latLngs){
+        customWayPoints = latLngs;
+        return this;
+    }
     /**
      *  DRAW LINE FROM ROUT AND CREATE WAYPOINTS
      * @param points
-     * @param googleMap
+     * @param
      */
-    public void drawPolyneOptions(ArrayList<LatLng> points, GoogleMap googleMap, DrawMarkerListener drawMarkerListener){
+    public void drawPolyneOptions(ArrayList<LatLng> points, DrawMarkerListener drawMarkerListener){
         if(googleMap == null){
             drawMarkerListener.onDrawMakerError(new Exception("Error on draw in maps, GoogleMaps viwe is null"));
             return;
@@ -202,7 +202,13 @@ public class GoogleMapsApi {
         googleMap.addPolyline(Utils.getRoutLine(points));
 
         if(drawMakerWithWayPointMode == 1){
-            ArrayList<MarkerOptions> markersOptions = Utils.getMarkerOptions(points, defaultTitleWayPointsMarkers);
+
+            //custom waypoints
+            ArrayList<MarkerOptions> markersOptions;
+            if(customWayPoints.isEmpty()) markersOptions = Utils.getMarkerOptions(points, defaultTitleWayPointsMarkers);
+            else markersOptions = Utils.getMarkerOptions(customWayPoints, defaultTitleWayPointsMarkers);
+
+
             synchronized(googleMap) {
 
                 ArrayList<Marker> markers = Utils.getMarkerFromOptions(markersOptions, googleMap);
@@ -218,4 +224,17 @@ public class GoogleMapsApi {
         }
     }
 
+    public void addMarkerTouchListener(final IAddMarkerClickListener iAddMarkerClickListener){
+
+        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
+            @Override
+            public void onMapClick(LatLng latLng) {
+                MarkerOptions markerOptions = new MarkerOptions().title("Add").position(latLng);
+                Marker marker = googleMap.addMarker(markerOptions);
+                synchronized (googleMap) {
+                    iAddMarkerClickListener.onMarkerAdded(marker, markerOptions);
+                }
+            }
+        });
+    }
 }

@@ -1,9 +1,8 @@
-package com.findsolucoes.backpackpro.googlemaps.GoogleMapsUtils;
+package findsolucoes.com.appcidade.Utils.googlemapsapi.GoogleMapsUtils;
 
 import android.content.Context;
 import android.util.Log;
 
-import com.findsolucoes.backpackpro.googlemaps.EstimatedTime.TravelMode;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -14,6 +13,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
+
+import findsolucoes.com.appcidade.Utils.googlemapsapi.EstimatedTime.TravelMode;
 
 public class Utils {
     private static String serviceGoogleMapsRout = "https://maps.googleapis.com/maps/api/directions/json?";
@@ -41,6 +42,7 @@ public class Utils {
         for(LatLng r : rout){
            polylineOptions.add(r);
         }
+
 
         return polylineOptions;
     }

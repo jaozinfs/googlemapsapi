@@ -1,4 +1,4 @@
-package com.findsolucoes.backpackpro.googlemaps.EstimatedTime;
+package findsolucoes.com.appcidade.Utils.googlemapsapi.EstimatedTime;
 
 public enum TravelMode {
     DRIVING,
