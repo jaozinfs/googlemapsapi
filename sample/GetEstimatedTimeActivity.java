@@ -46,7 +46,7 @@ public class GetEstimatedTimeActivity extends FreetimeActivity {
         ButterKnife.bind(this);
 
         requester = new Requester(this, getSharedServicesManager());
-        googleMapsApi = new GoogleMapsApi("AIzaSyCStQ5MqPfq8LgNEUb5b0W4TbwxfF51zAQ", googleMap);
+        googleMapsApi = new GoogleMapsApi(getApplicationContext(), "AIzaSyCStQ5MqPfq8LgNEUb5b0W4TbwxfF51zAQ", googleMap);
 
 
     }
