@@ -2,13 +2,16 @@ package com.findsolucoes.backpackpro.googlemaps;
 
 import android.util.Log;
 
-import com.findsolucoes.backpackpro.googlemaps.EstimatedTime.CalculateEstimatedTime;
+import com.findsolucoes.backpackpro.googlemaps.DrawLineMaps.DrawMarkerListener;
+import com.findsolucoes.backpackpro.googlemaps.EstimatedTime.CalculateEstimatedTimeListener;
 import com.findsolucoes.backpackpro.googlemaps.EstimatedTime.EstimatedtimeResponse;
 import com.findsolucoes.backpackpro.googlemaps.EstimatedTime.TravelMode;
 import com.findsolucoes.backpackpro.googlemaps.GoogleMapsUtils.Utils;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
 
 import org.freetime.mob.utils.GeneralUtils;
 import org.freetime.mob.webservices.RequestConfig;
@@ -26,6 +29,13 @@ import java.util.ArrayList;
  */
 public class GoogleMapsApi {
 
+    //draw WayPoints mode
+    public static int DRAW_MARKER_WITH_WAY_POINT = 1;
+    public static int DRAW_MARKER_WITHOUT_WAY_POINT = 0;
+
+    private static int drawMakerWithWayPointMode;
+    private static String defaultTitleWayPointsMarkers = "Parada";
+
     private static final String TAG = "GoogleMapsApi";
     /**
      * Travel mode select
@@ -35,21 +45,23 @@ public class GoogleMapsApi {
     /**
      * Estimate time travel origin to destine
      */
-    private CalculateEstimatedTime calculateEstimatedTime;
+    private CalculateEstimatedTimeListener calculateEstimatedTimeListener;
 
 
     /**
      * Key google maps to make something and is needed
      */
     private String apiKey;
+    private GoogleMap googleMap;
 
     /**
      * Google api constructor
      * @param apiKey
      */
-    public GoogleMapsApi(String apiKey){ this.apiKey = apiKey; }
-
-
+    public GoogleMapsApi(String apiKey, GoogleMap googleMap) {
+        this.apiKey = apiKey;
+        this.googleMap = googleMap;
+    }
     /**
      * Set Travel mode
      * @param travelMode
@@ -65,9 +77,9 @@ public class GoogleMapsApi {
      * Calcule estimated time from origin point to end point
      * @param points
      */
-    public void calculeteEstimatedTime(ArrayList<LatLng> points, Requester mRequester, final CalculateEstimatedTime calculateEstimatedTime){
+    public void calculeteEstimatedTime(ArrayList<LatLng> points, Requester mRequester, final CalculateEstimatedTimeListener calculateEstimatedTimeListener){
         //security verifys
-        this.calculateEstimatedTime = calculateEstimatedTime;
+        this.calculateEstimatedTimeListener = calculateEstimatedTimeListener;
 
         if(mRequester != null && points != null && !points.isEmpty()){
             //Url to get estimated time
@@ -99,23 +111,67 @@ public class GoogleMapsApi {
                                     Log.d(TAG, "distOb: "+distOb);
                                     Log.d(TAG, "timeOb: "+timeOb);
 
-                                    calculateEstimatedTime.onEstimatedTimeResult(new EstimatedtimeResponse(timeOb.getString("text"), distOb.getString("text")));
+                                    calculateEstimatedTimeListener.onEstimatedTimeResult(new EstimatedtimeResponse(timeOb.getString("text"), distOb.getString("text")));
                                 }catch (Exception e){
                                     Log.d(TAG, "ERROR ON GET OBJECT: "+e.getMessage());
-                                    calculateEstimatedTime.onEstimatedTimeError(e);
+                                    calculateEstimatedTimeListener.onEstimatedTimeError(e);
                                 }
                             }else{
-                                calculateEstimatedTime.onEstimatedTimeError(null);
+                                calculateEstimatedTimeListener.onEstimatedTimeError(null);
                             }
                         }
                     }).request();
         }
     }
 
+
+    public GoogleMapsApi setDrawMarkerWithWayPoint(int wayPointDraw){
+        if(wayPointDraw == DRAW_MARKER_WITH_WAY_POINT)drawMakerWithWayPointMode = DRAW_MARKER_WITH_WAY_POINT;
+        else drawMakerWithWayPointMode = DRAW_MARKER_WITHOUT_WAY_POINT;
+        return this;
+    }
+
+    public GoogleMapsApi setDrawMarkerWithWayPoint(int wayPointDraw, String defaultTitle){
+        if(wayPointDraw == DRAW_MARKER_WITH_WAY_POINT){
+            drawMakerWithWayPointMode = DRAW_MARKER_WITH_WAY_POINT;
+            defaultTitleWayPointsMarkers = defaultTitle;
+        }
+        else drawMakerWithWayPointMode = DRAW_MARKER_WITHOUT_WAY_POINT;
+        return this;
+    }
+
     /**
-     *
+     *  DRAW LINE FROM ROUT AND CREATE WAYPOINTS
      * @param points
      * @param googleMap
      */
-    public void drawPolyneOptions(ArrayList<LatLng> points, GoogleMap googleMap){ }
+    public void drawPolyneOptions(ArrayList<LatLng> points, GoogleMap googleMap, DrawMarkerListener drawMarkerListener){
+        if(googleMap == null){
+            drawMarkerListener.onDrawMakerError(new Exception("Error on draw in maps, GoogleMaps viwe is null"));
+            return;
+        }
+        if(points.isEmpty()){
+            drawMarkerListener.onDrawMakerError(new Exception("Error on draw in maps, GoogleMaps rout is empty"));
+            return;
+        }
+        if(drawMakerWithWayPointMode == 1)
+            if(defaultTitleWayPointsMarkers.equals("") || defaultTitleWayPointsMarkers.trim().isEmpty())
+                drawMarkerListener.onDrawMakerError(new Exception("Error on draw in maps, GoogleMaps waypoint default name is empty"));
+
+
+        //draw line in map
+        googleMap.addPolyline(Utils.getRoutLine(points));
+
+        if(drawMakerWithWayPointMode == 1){
+            ArrayList<MarkerOptions> markersOptions = Utils.getMarkerOptions(points, defaultTitleWayPointsMarkers);
+            synchronized(googleMap) {
+
+                ArrayList<Marker> markers = Utils.getMarkerFromOptions(markersOptions, googleMap);
+
+                googleMap.notifyAll();
+                drawMarkerListener.onDrawMaker(markers, markersOptions);
+            }
+        }
+    }
+
 }
