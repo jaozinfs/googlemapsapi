@@ -1,5 +1,6 @@
 package com.findsolucoes.backpackpro.googlemaps;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.findsolucoes.backpackpro.googlemaps.DrawLineMaps.DrawMarkerListener;
@@ -7,6 +8,7 @@ import com.findsolucoes.backpackpro.googlemaps.EstimatedTime.CalculateEstimatedT
 import com.findsolucoes.backpackpro.googlemaps.EstimatedTime.EstimatedtimeResponse;
 import com.findsolucoes.backpackpro.googlemaps.EstimatedTime.TravelMode;
 import com.findsolucoes.backpackpro.googlemaps.GoogleMapsUtils.Utils;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -31,9 +33,16 @@ public class GoogleMapsApi {
 
     //draw WayPoints mode
     public static int DRAW_MARKER_WITH_WAY_POINT = 1;
+
+
     public static int DRAW_MARKER_WITHOUT_WAY_POINT = 0;
 
+
+
     private static int drawMakerWithWayPointMode;
+    private static boolean zoomMapAfterLoadMap = false;
+    private static LatLng zoomPosition;
+
     private static String defaultTitleWayPointsMarkers = "Parada";
 
     private static final String TAG = "GoogleMapsApi";
@@ -53,12 +62,14 @@ public class GoogleMapsApi {
      */
     private String apiKey;
     private GoogleMap googleMap;
+    private Context context;
 
     /**
      * Google api constructor
      * @param apiKey
      */
-    public GoogleMapsApi(String apiKey, GoogleMap googleMap) {
+    public GoogleMapsApi(Context context, String apiKey, GoogleMap googleMap) {
+        this.context = context;
         this.apiKey = apiKey;
         this.googleMap = googleMap;
     }
@@ -125,12 +136,34 @@ public class GoogleMapsApi {
     }
 
 
+    /**
+     * SET ZOOM MODE
+     * @param position
+     * @return
+     */
+    public GoogleMapsApi setZoomMapAfterLoadMap(LatLng position) {
+        zoomMapAfterLoadMap = true;
+        zoomPosition = position;
+        return this;
+    }
+
+    /**
+     * set Draw Marker with way point
+     * @param wayPointDraw
+     * @return
+     */
     public GoogleMapsApi setDrawMarkerWithWayPoint(int wayPointDraw){
         if(wayPointDraw == DRAW_MARKER_WITH_WAY_POINT)drawMakerWithWayPointMode = DRAW_MARKER_WITH_WAY_POINT;
         else drawMakerWithWayPointMode = DRAW_MARKER_WITHOUT_WAY_POINT;
         return this;
     }
 
+    /**
+     * set draw marker with way point and default title
+     * @param wayPointDraw
+     * @param defaultTitle
+     * @return
+     */
     public GoogleMapsApi setDrawMarkerWithWayPoint(int wayPointDraw, String defaultTitle){
         if(wayPointDraw == DRAW_MARKER_WITH_WAY_POINT){
             drawMakerWithWayPointMode = DRAW_MARKER_WITH_WAY_POINT;
@@ -154,6 +187,12 @@ public class GoogleMapsApi {
             drawMarkerListener.onDrawMakerError(new Exception("Error on draw in maps, GoogleMaps rout is empty"));
             return;
         }
+        if(zoomMapAfterLoadMap){
+            if(zoomPosition == null){
+                drawMarkerListener.onDrawMakerError(new Exception("Error on draw in maps, GoogleMaps zoom position is null"));
+                return;
+            }
+        }
         if(drawMakerWithWayPointMode == 1)
             if(defaultTitleWayPointsMarkers.equals("") || defaultTitleWayPointsMarkers.trim().isEmpty())
                 drawMarkerListener.onDrawMakerError(new Exception("Error on draw in maps, GoogleMaps waypoint default name is empty"));
@@ -169,6 +208,11 @@ public class GoogleMapsApi {
                 ArrayList<Marker> markers = Utils.getMarkerFromOptions(markersOptions, googleMap);
 
                 googleMap.notifyAll();
+
+                if(zoomMapAfterLoadMap){
+                    googleMap.animateCamera(Utils.getCameraUpdate(context, zoomPosition));
+                }
+
                 drawMarkerListener.onDrawMaker(markers, markersOptions);
             }
         }
