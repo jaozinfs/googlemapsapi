@@ -20,7 +20,7 @@ Open your favorite Terminal and run these commands.
 
 ```@Override
     public void onMapReady(GoogleMap gm) {
-        googleMapsApi = new GoogleMapsApi(GetEstimatedTimeActivity.this, "tokenGoogleMaps", gm);
+        googleMapsApi = new GoogleMapsApi(this, "tokenGoogleMaps", gm);
     } 
 ```
     
