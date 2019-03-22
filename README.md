@@ -15,7 +15,7 @@ Make a change in your file and instantanously see your updates!
 
 Open your favorite Terminal and run these commands.
 
-# Usage Exemple
+# How to use
 ### First need start api when map is ready
 
 ```@Override
@@ -24,6 +24,7 @@ Open your favorite Terminal and run these commands.
     } 
 ```
     
+###Exemple 
 ### Here we calculate the estimated travel from an array of points
 ```
 googleMapsApi.setTravelMode(TravelMode.WALKING).calculeteEstimatedTime(latLngs, requester,
