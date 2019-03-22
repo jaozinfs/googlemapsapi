@@ -48,7 +48,7 @@ public class GetEstimatedTimeActivity extends FreetimeActivity implements
     Requester requester;
 
     private static String TAG = "GETESTIMATEDTIMEACTIVITY";
-
+    private static String mapToken = "ASHNASHGJSAHKSKÇLÇ!KL@JJK!H@!";
     //GOOGLE MAPS API CURRENT POSITION
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
@@ -78,7 +78,7 @@ public class GetEstimatedTimeActivity extends FreetimeActivity implements
         googleMap = gm;
         googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.getUiSettings().setZoomGesturesEnabled(true);
-        googleMapsApi = new GoogleMapsApi(getApplicationContext(), "AIzaSyCStQ5MqPfq8LgNEUb5b0W4TbwxfF51zAQ", googleMap);
+        googleMapsApi = new GoogleMapsApi(getApplicationContext(), mapToken, googleMap);
 
     }
 
@@ -223,7 +223,9 @@ public class GetEstimatedTimeActivity extends FreetimeActivity implements
     }
 
     public void addmarkerWhenClick(View view){
-        googleMapsApi.addMarkerTouchListener(new IAddMarkerClickListener() {
+        googleMapsApi.withOptionsMarker(GetEstimatedTimeActivity.this,"Add",
+                "Title of new marker ?")
+                .addMarkerTouchListener(new IAddMarkerClickListener() {
             @Override
             public void onMarkerAdded(Marker marker, MarkerOptions markerOptions) {
                 Log.d(TAG, "Marker: "+marker.getPosition());

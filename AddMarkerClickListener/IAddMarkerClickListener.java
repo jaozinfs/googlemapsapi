@@ -8,3 +8,4 @@ public interface IAddMarkerClickListener {
     void onMarkerAdded(Marker marker, MarkerOptions markerOptions);
     void onErrorAddMarker(Exception e);
 }
+

@@ -2,6 +2,8 @@ package findsolucoes.com.appcidade.Utils.googlemapsapi.GoogleMapsUtils;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -98,4 +100,17 @@ public class Utils {
         return CameraUpdateFactory.newLatLngBounds(bounds, width , height, padding);
     }
 
+    /**
+     * Create layout params for show modal custom marker in touch map
+     * @param context
+     * @return
+     */
+    public static EditText getCustomAddMarkerWhenTouckMap(Context context){
+        final EditText editText = new EditText(context);
+        final LinearLayout.LayoutParams  layoutParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        editText.setLayoutParams(layoutParams);
+        return editText;
+    }
 }

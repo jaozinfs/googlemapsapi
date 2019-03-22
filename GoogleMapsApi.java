@@ -1,7 +1,13 @@
 package findsolucoes.com.appcidade.Utils.googlemapsapi;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.support.design.widget.BottomSheetDialog;
 import android.util.Log;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -21,12 +27,16 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import findsolucoes.com.appcidade.R;
+import findsolucoes.com.appcidade.Utils.Utilits;
 import findsolucoes.com.appcidade.Utils.googlemapsapi.AddMarkerClickListener.IAddMarkerClickListener;
+import findsolucoes.com.appcidade.Utils.googlemapsapi.AddMarkerClickListener.IAddMarkerClickListenerWithCustomModal;
 import findsolucoes.com.appcidade.Utils.googlemapsapi.DrawLineMaps.DrawMarkerListener;
 import findsolucoes.com.appcidade.Utils.googlemapsapi.EstimatedTime.CalculateEstimatedTimeListener;
 import findsolucoes.com.appcidade.Utils.googlemapsapi.EstimatedTime.EstimatedtimeResponse;
 import findsolucoes.com.appcidade.Utils.googlemapsapi.EstimatedTime.TravelMode;
 import findsolucoes.com.appcidade.Utils.googlemapsapi.GoogleMapsUtils.Utils;
+import findsolucoes.com.appcidade.view.controller.transit.model.Line;
 
 /**
  * João Victor
@@ -38,10 +48,20 @@ public class GoogleMapsApi {
     public static int DRAW_MARKER_WITHOUT_WAY_POINT = 0;
 
 
+    //Custom dialog title marker when touch in map
+    private static boolean showCustomModalAddMarker = false;
+    private static String titleOfshowCustomModalAddMarker;
+    private static String msgOfshowCustomModalAddMarker;
+    private static  Activity activityTokenModalCreate;
 
+
+    //
     private static int drawMakerWithWayPointMode = DRAW_MARKER_WITHOUT_WAY_POINT;
+    //
     private static boolean zoomMapAfterLoadMap = false;
+    //
     private static LatLng zoomPosition;
+    //
     private static ArrayList<LatLng> customWayPoints = new ArrayList<>();
 
     private static String defaultTitleWayPointsMarkers = "Parada";
@@ -224,17 +244,93 @@ public class GoogleMapsApi {
         }
     }
 
-    public void addMarkerTouchListener(final IAddMarkerClickListener iAddMarkerClickListener){
+    /**
+     * Create marker when click in map view
+     * @param listener
+     */
+    public void addMarkerTouchListener(final IAddMarkerClickListener listener){
+        //
+
 
         googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
             @Override
-            public void onMapClick(LatLng latLng) {
-                MarkerOptions markerOptions = new MarkerOptions().title("Add").position(latLng);
-                Marker marker = googleMap.addMarker(markerOptions);
-                synchronized (googleMap) {
-                    iAddMarkerClickListener.onMarkerAdded(marker, markerOptions);
+            public void onMapClick(final LatLng latLng) {
+                if(showCustomModalAddMarker){
+                    showCustomModalAddMarker(new IAddMarkerClickListenerWithCustomModal() {
+                        @Override
+                        public void onSetText(String title) {
+                            MarkerOptions markerOptions = new MarkerOptions().title(title).position(latLng);
+                            Marker marker = googleMap.addMarker(markerOptions);
+                            synchronized (googleMap) {
+                                listener.onMarkerAdded(marker, markerOptions);
+                            }
+                        }
+                    });
+                }else{
+                    MarkerOptions markerOptions = new MarkerOptions().title(defaultTitleWayPointsMarkers).position(latLng);
+                    Marker marker = googleMap.addMarker(markerOptions);
+                    synchronized (googleMap) {
+                        listener.onMarkerAdded(marker, markerOptions);
+                    }
                 }
             }
         });
     }
+
+    /**
+     * set to show modal to create custom marker when click in map
+     * @param context
+     * @param positiveButtonTitle
+     * @return
+     */
+    public GoogleMapsApi withOptionsMarker(final Activity context, String positiveButtonTitle, String mesageButtinTitle) {
+        showCustomModalAddMarker = true;
+        titleOfshowCustomModalAddMarker = positiveButtonTitle;
+        activityTokenModalCreate = context;
+        msgOfshowCustomModalAddMarker = mesageButtinTitle;
+        return this;
+    }
+
+    /**
+     * Show modal with listener when click in ok button to create custom marker with title
+     * @param listener
+     */
+    public void showCustomModalAddMarker(final IAddMarkerClickListenerWithCustomModal listener){
+        //context to create modal
+        final Activity context = activityTokenModalCreate;
+
+        //create modal
+        AlertDialog.Builder alert = new AlertDialog.Builder(context);
+        final EditText titleMrk = Utils.getCustomAddMarkerWhenTouckMap(context);
+        alert.setView(titleMrk);
+
+        alert.setTitle(titleOfshowCustomModalAddMarker);
+        alert.setMessage(msgOfshowCustomModalAddMarker);
+
+        //set title of marker
+        alert.setPositiveButton(titleOfshowCustomModalAddMarker, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if(titleMrk.getText().toString().trim().isEmpty() || titleMrk.getText().toString().equals("")){
+                    Toast.makeText(context, "Add title of new marker !", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if(listener == null){
+                    dialog.dismiss();
+                }
+                listener.onSetText(titleMrk.getText().toString());
+                dialog.dismiss();
+            }
+        });
+
+        //dismiss modal
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        alert.show();
+    }
+
 }
