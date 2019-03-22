@@ -25,8 +25,8 @@ Open your favorite Terminal and run these commands.
 ```
     
 ### Here we calculate the estimated travel from an array of points
-
-```googleMapsApi.setTravelMode(TravelMode.WALKING).calculeteEstimatedTime(latLngs, requester,
+```
+googleMapsApi.setTravelMode(TravelMode.WALKING).calculeteEstimatedTime(latLngs, requester,
                 new CalculateEstimatedTimeListener() {
                     @Override
                     public void onEstimatedTimeResult(EstimatedtimeResponse estimatedtimeResponse) {}
@@ -36,8 +36,8 @@ Open your favorite Terminal and run these commands.
  ```
                 
 ### Here we add markers when we click on the map, and we can choose the option to delete a marker, draw the plotted route and among other options
-
-``` googleMapsApi.setDeleteMarkerListener(new IDeleteMarkerListener() {
+```
+ googleMapsApi.setDeleteMarkerListener(new IDeleteMarkerListener() {
                     @Override
                     public void onDeleteMarker(Marker marker) {}
                     @Override
