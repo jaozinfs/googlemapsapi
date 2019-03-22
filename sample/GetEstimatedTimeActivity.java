@@ -30,6 +30,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import findsolucoes.com.appcidade.R;
 import findsolucoes.com.appcidade.Utils.googlemapsapi.AddMarkerClickListener.IAddMarkerClickListener;
+import findsolucoes.com.appcidade.Utils.googlemapsapi.DeleteMarker.IDeleteMarkerListener;
 import findsolucoes.com.appcidade.Utils.googlemapsapi.DrawLineMaps.DrawMarkerListener;
 import findsolucoes.com.appcidade.Utils.googlemapsapi.EstimatedTime.CalculateEstimatedTimeListener;
 import findsolucoes.com.appcidade.Utils.googlemapsapi.EstimatedTime.EstimatedtimeResponse;
@@ -48,7 +49,7 @@ public class GetEstimatedTimeActivity extends FreetimeActivity implements
     Requester requester;
 
     private static String TAG = "GETESTIMATEDTIMEACTIVITY";
-    private static String mapToken = "ASHNASHGJSAHKSKÇLÇ!KL@JJK!H@!";
+
     //GOOGLE MAPS API CURRENT POSITION
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
@@ -78,7 +79,7 @@ public class GetEstimatedTimeActivity extends FreetimeActivity implements
         googleMap = gm;
         googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.getUiSettings().setZoomGesturesEnabled(true);
-        googleMapsApi = new GoogleMapsApi(getApplicationContext(), mapToken, googleMap);
+        googleMapsApi = new GoogleMapsApi(GetEstimatedTimeActivity.this, "AIzaSyCStQ5MqPfq8LgNEUb5b0W4TbwxfF51zAQ", googleMap);
 
     }
 
@@ -150,21 +151,21 @@ public class GetEstimatedTimeActivity extends FreetimeActivity implements
         latLngs.add(new LatLng(-20.124445, -45.910463));
 
         googleMapsApi.drawPolyneOptions(latLngs, new DrawMarkerListener() {
-                    @Override
-                    public void onDrawMaker(ArrayList<Marker> markers, ArrayList<MarkerOptions> markerOptions) {
-                        //listener when map update rout with latlangs
+            @Override
+            public void onDrawMaker(ArrayList<Marker> markers, ArrayList<MarkerOptions> markerOptions) {
+                //listener when map update rout with latlangs
 
-                    }
+            }
 
-                    @Override
-                    public void onDrawMakerError(Exception e) {
-                        if(e != null){
-                            Log.d(TAG, "Error: "+e.getMessage());
-                            return;
-                        }
-                        Log.d(TAG, "Error");
-                    }
-                });
+            @Override
+            public void onDrawMakerError(Exception e) {
+                if(e != null){
+                    Log.d(TAG, "Error: "+e.getMessage());
+                    return;
+                }
+                Log.d(TAG, "Error");
+            }
+        });
     }
     public void drawRoutInMapWITHZOOM(View view){
         ArrayList<LatLng> latLngs = new ArrayList<>();
@@ -223,17 +224,29 @@ public class GetEstimatedTimeActivity extends FreetimeActivity implements
     }
 
     public void addmarkerWhenClick(View view){
-        googleMapsApi.withOptionsMarker(GetEstimatedTimeActivity.this,"Add",
-                "Title of new marker ?")
-                .addMarkerTouchListener(new IAddMarkerClickListener() {
-            @Override
-            public void onMarkerAdded(Marker marker, MarkerOptions markerOptions) {
-                Log.d(TAG, "Marker: "+marker.getPosition());
-                Log.d(TAG, "MarkerOptions: "+markerOptions.getPosition());
-            }
+        googleMapsApi
+                .setDeleteMarkerListener(new IDeleteMarkerListener() {
+                    @Override
+                    public void onDeleteMarker(Marker marker) {
+                        Log.d(TAG, "Marker Deleted: "+marker.getPosition());
+                    }
 
-            @Override
-            public void onErrorAddMarker(Exception e) { }
-        });
+                    @Override
+                    public void onDeleteMarkerError(Exception e) {
+
+                    }
+                }).setDeleteMarker()
+                .setDrawPolylineWhenAddMarker()
+                .withOptionsMarker(GetEstimatedTimeActivity.this,"Add", "Title of new marker ?")
+                .addMarkerTouchListener(new IAddMarkerClickListener() {
+                    @Override
+                    public void onMarkerAdded(Marker marker, MarkerOptions markerOptions) {
+                        Log.d(TAG, "Marker: "+marker.getPosition());
+                        Log.d(TAG, "MarkerOptions: "+markerOptions.getPosition());
+                    }
+
+                    @Override
+                    public void onErrorAddMarker(Exception e) { }
+                });
     }
 }

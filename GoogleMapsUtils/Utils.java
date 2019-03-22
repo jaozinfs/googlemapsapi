@@ -1,6 +1,9 @@
 package findsolucoes.com.appcidade.Utils.googlemapsapi.GoogleMapsUtils;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -12,9 +15,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import findsolucoes.com.appcidade.Utils.googlemapsapi.EstimatedTime.TravelMode;
 
@@ -40,12 +45,9 @@ public class Utils {
      */
     public static PolylineOptions getRoutLine(ArrayList<LatLng> rout){
         PolylineOptions polylineOptions = new PolylineOptions();
-
         for(LatLng r : rout){
            polylineOptions.add(r);
         }
-
-
         return polylineOptions;
     }
 
@@ -112,5 +114,64 @@ public class Utils {
                 LinearLayout.LayoutParams.MATCH_PARENT);
         editText.setLayoutParams(layoutParams);
         return editText;
+    }
+
+    /**
+     * Remove Marker click listener
+     * @param context
+     * @param marker
+     */
+    public static void removeMarkerGMps(final GoogleMap googleMap, Activity context, final Marker marker, final boolean drawPolylineWhenAddNewMarker, final PolylineOptions polylineOptions, final Polyline polylineWhenAddNewMarker){
+        AlertDialog.Builder alert = new AlertDialog.Builder(context);
+
+        alert.setTitle("Dell marker");
+        alert.setMessage("You want dell marker ?");
+
+        //set title of marker
+        alert.setPositiveButton("remove", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //delete polyline
+                if(drawPolylineWhenAddNewMarker){
+
+                    //update polyline
+                    Utils.removePolylineFromMarker(polylineOptions, marker, polylineWhenAddNewMarker);
+                    polylineWhenAddNewMarker.remove();
+                    //set on map
+                    synchronized (googleMap){
+                        googleMap.addPolyline(polylineOptions);
+                    }
+                }
+
+                marker.remove();
+            }
+        });
+
+        //dismiss modal
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        alert.show();
+    }
+
+    /**
+     * Delete LatLgn polyline from marker deleted
+     * @param polylineOptions
+     * @param marker
+     * @return
+     */
+    public static PolylineOptions removePolylineFromMarker(PolylineOptions polylineOptions, Marker marker, Polyline polylineWhenAddNewMarker){
+        List<LatLng> latLngs = polylineOptions.getPoints();
+//
+//        for(int i = 0;i<latLngs.size();i++ ){
+//            if(marker.getPosition().latitude == latLngs.get(i).latitude && marker.getPosition().longitude == latLngs.get(i).longitude)
+//                latLngs.remove(i);
+//
+//        }
+        polylineWhenAddNewMarker.remove();
+        return new PolylineOptions().addAll(latLngs);
     }
 }
