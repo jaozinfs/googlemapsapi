@@ -18,10 +18,11 @@ Open your favorite Terminal and run these commands.
 # Usage Exemple
 ### First need start api when map is ready
 
-@Override
+```@Override
     public void onMapReady(GoogleMap gm) {
         googleMapsApi = new GoogleMapsApi(GetEstimatedTimeActivity.this, "AIzaSyCStQ5MqPfq8LgNEUb5b0W4TbwxfF51zAQ", gm);
-    }
+    } 
+```
     
 ### Here we calculate the estimated travel from an array of points
 
