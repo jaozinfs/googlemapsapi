@@ -24,7 +24,8 @@ Open your favorite Terminal and run these commands.
     } 
 ```
     
-###Exemple 
+### Exemples
+
 ### Here we calculate the estimated travel from an array of points
 ```
 googleMapsApi.setTravelMode(TravelMode.WALKING).calculeteEstimatedTime(latLngs, requester,
